@@ -22,9 +22,15 @@ def drop_schema(engine):
 
 
 def init_schema(engine):
+    inspector = sa.inspect(engine)
+
+    if inspector.has_table("match"):
+        return False
+
     schema_path = pathlib.Path(__file__).parent / "schema.sql"
     schema_sql = schema_path.read_text()
 
     with engine.begin() as conn:
         conn.execute(sa.text(schema_sql))
-        
+
+    return True
