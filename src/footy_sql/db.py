@@ -27,7 +27,7 @@ def init_schema(engine):
     if inspector.has_table("match"):
         return False
 
-    schema_path = pathlib.Path(__file__).parent / "schema.sql"
+    schema_path = pathlib.Path(__file__).parent.parent.parent / "schema.sql"
     schema_sql = schema_path.read_text()
 
     with engine.begin() as conn:
