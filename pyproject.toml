@@ -7,7 +7,14 @@ authors = [
     { name = "franc-LENOVO", email = "franciscofigueiredo2580@gmail.com" }
 ]
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "click>=8.5.0",
+    "duckdb>=2.0.0",
+    "pandas>=3.1.0",
+    "psycopg[binary]>=3.3.6",
+    "pyarrow>=26.0.0",
+    "sqlalchemy>=2.1.6",
+]
 
 [project.scripts]
 footy-sql = "footy_sql:main"
@@ -18,3 +25,8 @@ build-backend = "uv_build"
 
 [tool.uv]
 exclude-newer = "P7D"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
