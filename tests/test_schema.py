@@ -67,3 +67,33 @@ def test_duplicate_home_match_same_day(test_engine):
             ))
         assert "match_season_date_home_key" in str(exc_info.value)
 
+
+def test_half_time_above_full_time_fail(test_engine):
+    """Jogo com resultado ao intervalo maior que no final deve ser rejeitado"""
+    with test_engine.begin() as conn:
+        conn.execute(sa.text("INSERT INTO league (name) VALUES ('Liga')"))
+        conn.execute(sa.text("INSERT INTO season (league_id, name) VALUES (1, '2023-24')"))
+        conn.execute(sa.text("INSERT INTO team (name) VALUES ('Sporting')"))
+        conn.execute(sa.text("INSERT INTO team (name) VALUES ('Braga')"))
+
+        with pytest.raises(IntegrityError) as exc_info:
+            conn.execute(sa.text(
+                "INSERT INTO match (season_id, match_date, home_team_id, away_team_id, FTHG, FTAG, HTHG, HTAG) "
+                "VALUES (1, '2023-08-20', 1, 2, 1, 0, 2, 0)"
+            ))
+        assert "match_ht_goals_not_above_ft_goals" in str(exc_info.value)
+
+
+def test_match_unknown_home_team_fail(test_engine):
+    """Uma equipa com 'team_id' inválido deve ser rejeitado."""
+    with test_engine.begin() as conn:
+        conn.execute(sa.text("INSERT INTO league (name) VALUES ('Liga')"))
+        conn.execute(sa.text("INSERT INTO season (league_id, name) VALUES (1, '2023-24')"))
+        conn.execute(sa.text("INSERT INTO team (name) VALUES ('Braga')"))
+
+        with pytest.raises(IntegrityError) as exc_info:
+            conn.execute(sa.text(
+                "INSERT INTO match (season_id, match_date, home_team_id, away_team_id, FTHG, FTAG, HTHG, HTAG) "
+                "VALUES (1, '2023-08-20', 99, 1, 1, 0, 0, 0)"
+            ))
+        assert "match_home_team_id_fkey" in str(exc_info.value)
