@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS match, season, team, league CASCADE;
-
 CREATE TABLE IF NOT EXISTS league (
     league_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT NOT NULL,
