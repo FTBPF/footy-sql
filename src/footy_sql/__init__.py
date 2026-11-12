@@ -1,8 +1,10 @@
 import click
+import pandas as pd
 from sqlalchemy.exc import OperationalError
 
 from . import db
 from . import loading
+from . import standings
 
 @click.group()
 def main():
@@ -61,3 +63,35 @@ def load(league, season):
         click.echo(f"Loaded {league}/{season}: {matches} matches, {teams} teams.")
     except Exception as e:
         raise click.ClickException(f"Failed to load season: {e}")
+
+
+@main.command()
+@click.option(
+    "--league",
+    required=True,
+    help="League name (e.g. SP1)."
+)
+@click.option(
+    "--season",
+    required=True,
+    help="Season (e.g. 2324)."
+)
+@click.option(
+    "--as-of",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    default=None,
+    help="Calculate standings up to this date (YYYY-MM-DD)."
+)
+def table(league, season, as_of):
+    """Display the league standings."""
+    engine = db.get_engine()
+    try:
+        rows = standings.get_standings(engine, league, season, as_of)
+    except Exception as e:
+        raise click.ClickException(f"Failed to display the league standings: {e}")
+    
+    if not rows:
+        click.echo(f"No matches found for this league: {league}, season: {season} and date: {as_of.date()}.")
+    else:
+        table_df = pd.DataFrame(([dict(row) for row in rows]))
+        click.echo(table_df.to_string(index=False))
