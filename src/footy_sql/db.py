@@ -16,10 +16,10 @@ def query(engine, sql, **params):
 
 
 def drop_schema(engine):
+    schema_path = pathlib.Path(__file__).parent / "sql" / "schema-drop.sql"
+    schema_sql = schema_path.read_text()
     with engine.begin() as conn:
-        for table in TABLES:            
-            conn.execute(sa.text(f"DROP TABLE IF EXISTS {table} CASCADE;"))
-
+        conn.execute(sa.text(schema_sql))
 
 def init_schema(engine):
     inspector = sa.inspect(engine)
@@ -27,7 +27,7 @@ def init_schema(engine):
     if inspector.has_table("match"):
         return False
 
-    schema_path = pathlib.Path(__file__).parent / "schema.sql"
+    schema_path = pathlib.Path(__file__).parent / "sql" / "schema-init.sql"
     schema_sql = schema_path.read_text()
 
     with engine.begin() as conn:
