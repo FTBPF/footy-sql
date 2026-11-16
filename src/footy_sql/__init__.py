@@ -2,9 +2,7 @@ import click
 import pandas as pd
 from sqlalchemy.exc import OperationalError
 
-from . import db
-from . import loading
-from . import standings
+from . import db, loading, standings, stats
 
 @click.group()
 def main():
@@ -36,8 +34,8 @@ def init(drop):
             db.drop_schema(engine)
             click.echo('Dropped existing schema.')
         created = db.init_schema(engine)
-    except OperationalError:
-        raise click.ClickException("Cannot connect to the database.")
+    except OperationalError as e:
+        raise click.ClickException(f"Cannot connect to the database: {e}")
     if created:
         click.echo("Schema created.")
     else:
@@ -95,3 +93,25 @@ def table(league, season, as_of):
     else:
         table_df = pd.DataFrame(([dict(row) for row in rows]))
         click.echo(table_df.to_string(index=False))
+
+
+@main.command()
+@click.option(
+    "--league",
+    type=str,
+    help="Name of the League for home-advantage check.",
+)
+@click.option(
+    "--season",
+    type=int,
+    help="Which season for home-advantage check.",
+)
+def home_advantage(league, season):
+    engine = db.get_engine()
+    try:
+        home, draw, away = stats.get_home_advantage_percentage(engine, league, season)
+    except ValueError as e:
+        raise click.ClickException(str(e))
+    except OperationalError as e:
+        raise click.ClickException(f"Cannot connect to the database: {e}")
+    click.echo(f"Home win: {home:.1f}%  Draw: {draw:.1f}%  Away win: {away:.1f}%")
